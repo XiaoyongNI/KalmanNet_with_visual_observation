@@ -1,35 +1,43 @@
 import math
 import torch
-torch.pi = torch.acos(torch.zeros(1)).item() * 2 # which is 3.1415927410125732
+import numpy as np
 from torch import autograd
-from parameters import m, n, delta_t, delta_t_gen, H_design, delta_t_mod,H_mod
+from PendulumData import Pendulum
+from parameters import m, n, H_design, H_mod, transition_noise_q, observation_noise_r
 
-if torch.cuda.is_available():
-    cuda0 = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
-else:
-   cuda0 = torch.device("cpu")
-   print("Running on the CPU")
+img_size = 24
 
-def f_gen(x):
-    g = 9.81 # Gravitational Acceleration
-    L = 1 # Radius of pendulum
-    result = [x[0]+x[1]*delta_t_gen, x[1]-(g/L * torch.sin(x[0]))*delta_t_gen]
-    result = torch.squeeze(torch.tensor(result))
-    # print(result.size())
-    return result
+pend_params = Pendulum.pendulum_default_params()
+pend_params[Pendulum.FRICTION_KEY] = 0.1
+
+Pendulum_data = Pendulum(img_size=img_size,
+                observation_mode=Pendulum.OBSERVATION_MODE_LINE,
+                transition_noise_std = transition_noise_q,
+                observation_noise_std = observation_noise_r,
+                pendulum_params=pend_params,
+                seed=0)
+
+delta_t = Pendulum_data.sim_dt
 
 def f(x):
-    g = 9.81 # Gravitational Acceleration
-    L = 1 # Radius of pendulum
-    result = [x[0]+x[1]*delta_t, x[1]-(g/L * torch.sin(x[0]))*delta_t]
-    result = torch.squeeze(torch.tensor(result))
-    # print(result.size())
-    return result
+    c = Pendulum_data.g * Pendulum_data.length * Pendulum_data.mass / Pendulum_data.inertia
+    velNew = x[1:2] + delta_t * (c * torch.sin(x[0:1]) - x[1:2] * Pendulum_data.friction)
+    x_new = torch.tensor([x[0:1] + delta_t * velNew, velNew])
+    return x_new
 
 def h(x):
-    return torch.matmul(H_design,x).to(cuda0)
-    #return toSpherical(x)
+    return torch.matmul(H_design,x)
+
+def h_add_obs_noise(x):
+    if Pendulum_data.observation_noise_std > 0.0:
+        observation_noise = torch.from_numpy(Pendulum_data.random.normal(loc=0.0,
+                                                scale=Pendulum_data.observation_noise_std,
+                                                size=x.shape))
+    else:
+        observation_noise = torch.zeros(x.shape)
+    noisy_state = torch.matmul(H_design,x) + observation_noise
+
+    return noisy_state
 
 def fInacc(x):
     g = 9.81 # Gravitational Acceleration
@@ -67,15 +75,6 @@ def getJacobian(x, a):
     return Jac
 
 
-
-# def hInv(y):
-#     return torch.matmul(H_design_inv,y)
-#     #return toCartesian(y)
-
-
-# def hInaccInv(y):
-#     return torch.matmul(H_mod_inv,y)
-#     #return toCartesian(y)
 
 '''
 x = torch.tensor([[1],[1],[1]]).float() 

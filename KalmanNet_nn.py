@@ -209,7 +209,6 @@ class KalmanNetNN(torch.nn.Module):
     ### Kalman Net Step ###
     #######################
     def KNet_step(self, y):
-
         # Compute Priors
         self.step_prior()
 
@@ -221,8 +220,7 @@ class KalmanNetNN(torch.nn.Module):
         self.i += 1
 
         # Innovation
-        y_obs = torch.unsqueeze(y, 1)
-        dy = y_obs - self.m1y
+        dy = y - self.m1y
 
         # Compute the 1-st posterior moment
         INOV = torch.matmul(self.KGain, dy)
@@ -231,7 +229,7 @@ class KalmanNetNN(torch.nn.Module):
 
         #self.state_process_posterior_0 = self.state_process_prior_0
         self.m1x_prior_previous = self.m1x_prior
-
+        
         # update y_prev
         self.y_previous = y
 

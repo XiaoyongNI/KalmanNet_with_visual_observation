@@ -159,7 +159,7 @@ class Pendulum:
         return means[succ], covars[succ], succ
 
     def _sample_init_state(self, nr_epochs):
-        return np.concatenate((self.random.uniform(0, 2 * np.pi, (nr_epochs, 1)), np.zeros((nr_epochs, 1))), 1)
+        return np.concatenate((self.random.uniform(0.5*np.pi,1.5*np.pi, (nr_epochs, 1)), np.zeros((nr_epochs, 1))), 1)
 
     def add_observation_noise(self, imgs, first_n_clean, r=0.2, t_ll=0.1, t_lu=0.4, t_ul=0.6, t_uu=0.9):
         return noise_gen.add_img_noise(imgs, first_n_clean, self.random, r, t_ll, t_lu, t_ul, t_uu)
