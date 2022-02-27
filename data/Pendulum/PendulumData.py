@@ -250,17 +250,19 @@ if __name__ == '__main__':
 
     data = Pendulum(img_size=img_size,
                     observation_mode=Pendulum.OBSERVATION_MODE_LINE,
-                    transition_noise_std=0.1,
+                    transition_noise_std=0.001,
                     observation_noise_std=1e-5,
                     pendulum_params=pend_params,
                     seed=0)
 
-    samples, _, _, _ = data.sample_data_set(500, 150, full_targets=False, seed=1)
-    noisy_samples, factors = data.add_observation_noise(samples, 0)
-
-    np.savez("pend_test", images=samples)
+    imgs, targets, states, noisy_targets = data.sample_data_set(500, 150, full_targets=False, seed=1)
+    noisy_samples, factors = data.add_observation_noise(imgs, 0)
 
 
-    print("test")
+    np.savez(r"./data/Pendulum/imgs", images=imgs)# 24*24 images
+    np.savez(r"./data/Pendulum/noisy_imgs", images=noisy_samples)# 24*24 images with observation noise added
+    np.savez(r"./data/Pendulum/targets", images=targets)# x,y positions of pendulum (if 4 dim, also includes derivatives of x and y, i.e. velocities)
+    np.savez(r"./data/Pendulum/noisy_targets", images=noisy_targets)# target adding observation noise
+    np.savez(r"./data/Pendulum/states", images=states)# [angle, angular velocity]
 
 
