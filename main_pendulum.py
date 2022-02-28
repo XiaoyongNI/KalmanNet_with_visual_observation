@@ -9,7 +9,7 @@ from Extended_data import DataGen,DataLoader,DataLoader_GPU, Decimate_and_pertur
 from Extended_data import N_E, N_CV, N_T
 from Pipeline_EKF import Pipeline_EKF
 from KalmanNet_nn import KalmanNetNN
-
+from main_AE import load_pendulum_npz
 from datetime import datetime
 
 from Plot import Plot_extended as Plot
@@ -54,29 +54,44 @@ q = torch.tensor([transition_noise_q])
 print("1/r2 [dB]: ", 10 * torch.log10(1/r[0]**2))
 print("1/q2 [dB]: ", 10 * torch.log10(1/q[0]**2))
 
-# load dataset
-dataFile = np.load(DatafolderName+'pdl_data2.npz',encoding = "latin1") 
-torchdata = torch.from_numpy(dataFile['Angle']) # convert to torch tensor
-torchdata = torch.transpose(torchdata, 1, 2)
-print("Data Load")
-print("Data size (num_episodes, state dimension, episode_length):",torchdata.size())# dataset in the form of (num_episodes, state dimension, episode_length)
+### load dataset 
+# dataFile = np.load(DatafolderName+'pdl_data2.npz',encoding = "latin1") 
+# torchdata = torch.from_numpy(dataFile['Angle']) # convert to torch tensor
+# torchdata = torch.transpose(torchdata, 1, 2)
+# print("Data Load")
+# print("Data size (num_episodes, state dimension, episode_length):",torchdata.size())# dataset in the form of (num_episodes, state dimension, episode_length)
+# target = torchdata # target is the true state
+# input = torch.empty_like(target) # input is the noisy observation
+# for i in range(0,N_T):
+#    for t in range(0, T_test):
+#       input[i,:,t] = h_add_obs_noise(target[i,:,t]) # multiply by observation model and add observation noise
 
-target = torchdata # target is the true state
-input = torch.empty_like(target) # input is the noisy observation
-for i in range(0,N_T):
-   for t in range(0, T_test):
-      input[i,:,t] = h_add_obs_noise(target[i,:,t]) # multiply by observation model and add observation noise
+# # Split into training, Cross-Validation and testing dataset
+# train_target = target[0:70,:,:]
+# train_input = input[0:70,:,:]
+# cv_target = target[70:80,:,:]
+# cv_input = input[70:80,:,:]
+# test_target = target[80:100,:,:]
+# test_input = input[80:100,:,:]
+# print("trainset size:",train_target.size())
+# print("cvset size:",cv_target.size())
+# print("testset size:",test_target.size())
 
-# Split into training, Cross-Validation and testing dataset
-train_target = target[0:70,:,:]
-train_input = input[0:70,:,:]
-cv_target = target[70:80,:,:]
-cv_input = input[70:80,:,:]
-test_target = target[80:100,:,:]
-test_input = input[80:100,:,:]
-print("trainset size:",train_target.size())
-print("cvset size:",cv_target.size())
-print("testset size:",test_target.size())
+
+### load dataset
+states_np = load_pendulum_npz(r'./data/Pendulum/states.npz') # true states [angle, angular velocity]
+print(states_np.shape)
+true_states = torch.from_numpy(states_np) # convert to torch tensor
+
+### Use trained CNN to achieve noisy observations
+encoder_loaded = torch.load(r"./saved_models/Only_conv_encoder.pt")# load encoder CNN model
+imgs_np = load_pendulum_npz(r'./data/Pendulum/imgs.npz')
+encoder_loaded.eval()
+with torch.no_grad():
+   for img in imgs_np:
+      encoded_data = encoder_loaded(img.reshape(256, 1, 24, 24) / 255)
+
+
 ############################
 ###  KalmanNet and EKF   ###
 ############################

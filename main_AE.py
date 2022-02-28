@@ -283,7 +283,7 @@ def training_AE_conv(flag_only_encoder):
 
     lr = 0.0002
     torch.manual_seed(0)
-    d = 1
+    d = 1 #learn only the angle
     num_epochs=30
     batch_size=256
     

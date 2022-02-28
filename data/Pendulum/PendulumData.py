@@ -259,9 +259,9 @@ if __name__ == '__main__':
     noisy_samples, factors = data.add_observation_noise(imgs, 0)
 
 
-    np.savez(r"./data/Pendulum/imgs", images=imgs)# 24*24 images
+    np.savez(r"./data/Pendulum/imgs", images=imgs)# 24*24 images(already have noise since they're generated from noisy_targets)
     np.savez(r"./data/Pendulum/noisy_imgs", images=noisy_samples)# 24*24 images with observation noise added
-    np.savez(r"./data/Pendulum/targets", images=targets)# x,y positions of pendulum (if 4 dim, also includes derivatives of x and y, i.e. velocities)
+    np.savez(r"./data/Pendulum/targets", images=targets)# x,y positions of pendulum(if 4 dim, also includes derivatives of x and y, i.e. velocities)
     np.savez(r"./data/Pendulum/noisy_targets", images=noisy_targets)# target adding observation noise
     np.savez(r"./data/Pendulum/states", images=states)# [angle, angular velocity]
 
