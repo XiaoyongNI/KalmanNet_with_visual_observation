@@ -1,5 +1,6 @@
 import torch
 import math
+import numpy as np
 
 if torch.cuda.is_available():
     cuda0 = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
@@ -11,13 +12,14 @@ else:
 #########################
 ### Design Parameters ###
 #########################
-m = 2
-n = 2
+NL_m = 2
+NL_n = 2
 
-m1x_0 = torch.FloatTensor([1,0]) 
+NL_m1_0 = torch.FloatTensor([np.pi,0]) #uniform(0, 2 * np.pi)
 m1x_0_design_test = torch.ones(m, 1)
 variance = 0
-m2x_0 = variance * torch.eye(m)
+NL_m2_0 = torch.tensor([[np.pi**2/3, 0.0],
+                        [0.0, 0.0]])
 
 ##########################################
 ### Generative Parameters For Pendulum ###
@@ -30,12 +32,13 @@ delta_t = 0.02
 ratio = delta_t_gen/delta_t
 
 # Length of Time Series Sequence
-T = 30
-T_test = 3000
+NL_T = 30
+NL_T_test = 40
 T_gen = math.ceil(T_test / ratio)
 # T_test_gen = math.ceil(T_test / ratio)
 
-H_design = torch.eye(m)
+H_design = torch.tensor([[1.0, 0.0],
+                         [0.0, 0.0]])
 
 H_design_inv = torch.inverse(H_design)
 

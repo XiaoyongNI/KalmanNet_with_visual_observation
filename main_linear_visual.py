@@ -3,12 +3,19 @@ torch.pi = torch.acos(torch.zeros(1)).item() * 2 # which is 3.1415927410125732
 from datetime import datetime # getting current time
 
 from Linear_sysmdl_visual import SystemModel
+from Extended_sysmdl_viaual import SystemModel as NL_SystemModel
 from Extended_data_visual import DataGen,DataLoader,DataLoader_GPU, Decimate_and_perturbate_Data,Short_Traj_Split
 from Extended_data_visual import N_E, N_CV, N_T, F, F_rotated, T, T_test, m1_0, m2_0, m, n,H_fully_connected, H_matrix_for_visual, b_for_visual
 from visual_supplementary import y_size, check_changs
 from Pipeline_KF_visual import Pipeline_KF
 from KalmanNet_nn_visual import KalmanNetNN
 from main_AE import Autoencoder, Encoder
+
+from filing_paths import path_model
+import sys
+sys.path.insert(1, path_model)
+from parameters import NL_T, NL_T_test, NL_m1_0, NL_m2_0, NL_m, NL_n
+from model import f, h
 
 if torch.cuda.is_available():
    dev = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
@@ -30,6 +37,15 @@ strTime = strToday + "_" + strNow
 print("Current Time =", strTime)
 #path_results = 'RTSNet/'
 
+
+############ Hyper Parameters ##################
+learning_rate_list=[2e-5]
+weight_decay_list=[1e-4]
+fix_H_flag=True
+pendulum_data_flag=True
+encoded_dimention = 1
+################################################
+
 ####################
 ### Design Model ###
 ####################
@@ -42,16 +58,13 @@ print("1/q2 [dB]: ", 10 * torch.log10(1/q2[0]))
 # True model
 r = torch.sqrt(r2)
 q = torch.sqrt(q2)
-sys_model = SystemModel(F, q, H_matrix_for_visual, r, T, T_test)
-sys_model.InitSequence(m1_0, m2_0)
 
-############ Hyper Parameters ##################
-learning_rate_list=[2e-5]
-weight_decay_list=[1e-4]
-fix_H_flag=True
-pendulum_data_flag=True
-encoded_dimention = 1
-################################################
+if pendulum_data_flag:
+   sys_model = NL_SystemModel(f, q, h, r, NL_T, NL_T_test, NL_m, NL_n, None)
+   sys_model.InitSequence(NL_m1_0, NL_m2_0)
+else:
+   sys_model = SystemModel(F, q, H_matrix_for_visual, r, T, T_test)
+   sys_model.InitSequence(m1_0, m2_0)
 
 ##### Load  Encoder Models ##################
 h_fully_connected = H_fully_connected(H_matrix_for_visual, b_for_visual)
@@ -112,7 +125,7 @@ KNet_Pipeline.setssModel(sys_model)
 KNet_model = KalmanNetNN()
 KNet_model.Build(sys_model,h_fully_connected)
 KNet_Pipeline.setModel(KNet_model)
-check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
+# check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
 
 for lr in learning_rate_list:
    for wd in weight_decay_list:
@@ -121,7 +134,7 @@ for lr in learning_rate_list:
       title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
       print(title)
       KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained)
-      check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
+      # check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
 
 #Test
 [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained)
