@@ -16,7 +16,7 @@ NL_m = 2
 NL_n = 2
 
 NL_m1_0 = torch.FloatTensor([np.pi,0]) #uniform(0, 2 * np.pi)
-m1x_0_design_test = torch.ones(m, 1)
+m1x_0_design_test = torch.ones(NL_m, 1)
 variance = 0
 NL_m2_0 = torch.tensor([[np.pi**2/3, 0.0],
                         [0.0, 0.0]])
@@ -34,13 +34,13 @@ ratio = delta_t_gen/delta_t
 # Length of Time Series Sequence
 NL_T = 30
 NL_T_test = 40
-T_gen = math.ceil(T_test / ratio)
+T_gen = math.ceil(NL_T_test / ratio)
 # T_test_gen = math.ceil(T_test / ratio)
 
 H_design = torch.tensor([[1.0, 0.0],
                          [0.0, 0.0]])
 
-H_design_inv = torch.inverse(H_design)
+# H_design_inv = torch.inverse(H_design)
 
 # Noise Parameters
 r_dB = 0
@@ -52,14 +52,14 @@ lambda_q = lambda_r * nx
 Q_non_diag = False
 R_non_diag = False
 
-Q = (lambda_q**2) * torch.eye(m)
+Q = (lambda_q**2) * torch.eye(NL_m)
 
 if(Q_non_diag):
     q_d = lambda_q**2
     q_nd = (lambda_q **2)/2
     Q = torch.tensor([[q_d, q_nd, q_nd],[q_nd, q_d, q_nd],[q_nd, q_nd, q_d]])
 
-R = (lambda_r**2) * torch.eye(n)
+R = (lambda_r**2) * torch.eye(NL_n)
 
 if(R_non_diag):
     r_d = lambda_r**2
@@ -70,16 +70,16 @@ if(R_non_diag):
 ### Model Parameters ####
 #########################
 
-m1x_0_mod = m1x_0
+m1x_0_mod = NL_m1_0
 m1x_0_mod_test = m1x_0_design_test
-m2x_0_mod = 0 * 0 * torch.eye(m)
+m2x_0_mod = 0 * 0 * torch.eye(NL_m)
 
 # Sampling time step
 delta_t_mod = delta_t
 
 # Length of Time Series Sequence
-T_mod = math.ceil(T * ratio)
-T_test_mod = math.ceil(T_test * ratio)
+T_mod = math.ceil(NL_T * ratio)
+T_test_mod = math.ceil(NL_T_test * ratio)
 
 #######################################
 #### Model Parameters For Pendulum ####
@@ -105,5 +105,5 @@ lambda_q_mod = 2
 lambda_r_mod = 1
 
 # Noise Matrices
-Q_mod = (lambda_q_mod**2) * torch.eye(m)
-R_mod = (lambda_r_mod**2) * torch.eye(n)
+Q_mod = (lambda_q_mod**2) * torch.eye(NL_m)
+R_mod = (lambda_r_mod**2) * torch.eye(NL_n)

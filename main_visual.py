@@ -9,6 +9,7 @@ from Extended_data_visual import N_E, N_CV, N_T, F, F_rotated, T, T_test, m1_0, 
 from visual_supplementary import y_size, check_changs
 from Pipeline_KF_visual import Pipeline_KF
 from KalmanNet_nn_visual import KalmanNetNN
+from Extended_KalmanNet_nn import KalmanNetNN as Extended_KalmanNetNN
 from main_AE import Autoencoder, Encoder
 
 from filing_paths import path_model
@@ -122,8 +123,12 @@ modelFolder = 'KNet' + '/'
 KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet", data_name)
 KNet_Pipeline.setssModel(sys_model)
 
-KNet_model = KalmanNetNN()
-KNet_model.Build(sys_model,h_fully_connected)
+if pendulum_data_flag:
+   KNet_model = Extended_KalmanNetNN()
+   KNet_model.Build(sys_model)
+else:
+   KNet_model = KalmanNetNN()
+   KNet_model.Build(sys_model,h_fully_connected)
 KNet_Pipeline.setModel(KNet_model)
 # check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
 
