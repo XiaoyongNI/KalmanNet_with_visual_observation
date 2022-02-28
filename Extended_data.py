@@ -13,18 +13,21 @@ else:
 #######################
 ### Size of DataSet ###
 #######################
-
+y_size=2
 # Number of Training Examples
 N_E = 1000
 
 # Number of Cross Validation Examples
 N_CV = 10
+N_T = 10
+#N_CV = 100
+#N_T = 200
 
-N_T = 100
-
-# Sequence Length
-T = 20
-T_test = 20
+# Sequence Length for Linear Case
+T = 30
+T_test = 30
+# T = 100
+# T_test = 100
 
 #################
 ## Design #10 ###
@@ -54,13 +57,13 @@ H10 = torch.tensor([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
 ############
 ## 2 x 2 ###
 ############
-# m = 2
-# n = 2
-# F = F10[0:m, 0:m]
-# H = torch.eye(2)
-# m1_0 = torch.tensor([[0.0], [0.0]]).to(cuda0)
-# # m1x_0_design = torch.tensor([[10.0], [-10.0]])
-# m2_0 = 0 * 0 * torch.eye(m).to(cuda0)
+m = 2
+n = 2
+F = F10[0:m, 0:m]
+H = torch.eye(2)
+m1_0 = torch.tensor([[0.0], [0.0]]).to(dev)
+# m1x_0_design = torch.tensor([[10.0], [-10.0]])
+m2_0 = 0 * 0 * torch.eye(m).to(dev)
 
 
 #############
@@ -70,9 +73,9 @@ H10 = torch.tensor([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
 # n = 5
 # F = F10[0:m, 0:m]
 # H = H10[0:n, 10-m:10]
-# m1_0 = torch.zeros(m, 1).to(cuda0)
-# # m1x_0_design = torch.tensor([[1.0], [-1.0], [2.0], [-2.0], [0.0]]).to(cuda0)
-# m2_0 = 0 * 0 * torch.eye(m).to(cuda0)
+# m1_0 = torch.zeros(m, 1).to(dev)
+# # m1x_0_design = torch.tensor([[1.0], [-1.0], [2.0], [-2.0], [0.0]]).to(dev)
+# m2_0 = 0 * 0 * torch.eye(m).to(dev)
 
 ##############
 ## 10 x 10 ###
@@ -81,9 +84,20 @@ H10 = torch.tensor([[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
 # n = 10
 # F = F10[0:m, 0:m]
 # H = H10
-# m1_0 = torch.zeros(m, 1).to(cuda0)
+# m1_0 = torch.zeros(m, 1).to(dev)
 # # m1x_0_design = torch.tensor([[10.0], [-10.0]])
-# m2_0 = 0 * 0 * torch.eye(m).to(cuda0)
+# m2_0 = 0 * 0 * torch.eye(m).to(dev)
+
+# Inaccurate model knowledge based on matrix rotation
+alpha_degree = 10
+rotate_alpha = torch.tensor([alpha_degree/180*torch.pi]).to(dev)
+cos_alpha = torch.cos(rotate_alpha)
+sin_alpha = torch.sin(rotate_alpha)
+rotate_matrix = torch.tensor([[cos_alpha, -sin_alpha],
+                              [sin_alpha, cos_alpha]]).to(dev)
+# print(rotate_matrix)
+F_rotated = torch.mm(F,rotate_matrix) #inaccurate process model
+H_rotated = torch.mm(H,rotate_matrix) #inaccurate observation model
 
 def DataGen_True(SysModel_data, fileName, T):
 
@@ -125,7 +139,7 @@ def DataGen(SysModel_data, fileName, T, T_test,randomInit=False):
 
 def DataLoader(fileName):
 
-    [training_input, training_target, cv_input, cv_target, test_input, test_target] = torch.load(fileName)
+    [training_input, training_target, cv_input, cv_target, test_input, test_target] = torch.load(fileName, map_location=dev)
     return [training_input, training_target, cv_input, cv_target, test_input, test_target]
 
 def DataLoader_GPU(fileName):

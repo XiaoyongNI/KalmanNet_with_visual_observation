@@ -1,8 +1,6 @@
-path_model_Pendulum = 'data/Pendulum/'
+path_model_Lor = 'Simulations/Lorenz_Atractor/'
+path_model_NCLT = 'Simulations/NCLT/'
+path_model_Toy = 'Simulations/Toy_problems/'
+path_model_Pendulum = 'Simulations/Pendulum/'
 
-path_model = path_model_Pendulum
-
-
-'''
-# This file chooses the motion model that is used for simulation.
-'''
+path_model = path_model_Lor
