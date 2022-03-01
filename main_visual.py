@@ -2,6 +2,7 @@ import torch #Machine Learning
 torch.pi = torch.acos(torch.zeros(1)).item() * 2 # which is 3.1415927410125732
 from datetime import datetime # getting current time
 
+from EKF_test_visual import EKFTest
 from Linear_sysmdl_visual import SystemModel
 from Extended_sysmdl_viaual import SystemModel as NL_SystemModel
 from Extended_data_visual import DataGen,DataLoader,DataLoader_GPU, Decimate_and_perturbate_Data,Short_Traj_Split
@@ -101,8 +102,8 @@ print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
 ##############################
 ### Evaluate Kalman Filter ###
 ##############################
-#print("Evaluate Kalman Filter True")
-#[MSE_KF_linear_arr, MSE_KF_linear_avg, MSE_KF_dB_avg] = KFTest(sys_model, test_input, test_target)
+print("Evaluate Kalman Filter True")
+[MSE_KF_linear_arr, MSE_KF_linear_avg, MSE_KF_dB_avg] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained)
 #print("Evaluate Kalman Filter Partial")
 #[MSE_KF_linear_arr_partialh, MSE_KF_linear_avg_partialh, MSE_KF_dB_avg_partialh] = KFTest(sys_model_partialh, test_input, test_target)
 
@@ -118,32 +119,32 @@ print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
 ##################
 ###  KalmanNet ###
 ##################
-print("Start KNet pipeline")
-modelFolder = 'KNet' + '/'
-KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet", data_name)
-KNet_Pipeline.setssModel(sys_model)
+# print("Start KNet pipeline")
+# modelFolder = 'KNet' + '/'
+# KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet", data_name)
+# KNet_Pipeline.setssModel(sys_model)
 
-if pendulum_data_flag:
-   KNet_model = Extended_KalmanNetNN()
-   KNet_model.Build(sys_model)
-else:
-   KNet_model = KalmanNetNN()
-   KNet_model.Build(sys_model,h_fully_connected)
-KNet_Pipeline.setModel(KNet_model)
-# check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
+# if pendulum_data_flag:
+#    KNet_model = Extended_KalmanNetNN()
+#    KNet_model.Build(sys_model)
+# else:
+#    KNet_model = KalmanNetNN()
+#    KNet_model.Build(sys_model,h_fully_connected)
+# KNet_Pipeline.setModel(KNet_model)
+# # check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
 
-for lr in learning_rate_list:
-   for wd in weight_decay_list:
-      KNet_Pipeline.setTrainingParams(fix_H_flag, pendulum_data_flag, n_Epochs=300, n_Batch=64, learningRate=lr, weightDecay=wd)
-      #KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-      title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
-      print(title)
-      KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained)
-      # check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
+# for lr in learning_rate_list:
+#    for wd in weight_decay_list:
+#       KNet_Pipeline.setTrainingParams(fix_H_flag, pendulum_data_flag, n_Epochs=300, n_Batch=64, learningRate=lr, weightDecay=wd)
+#       #KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+#       title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
+#       print(title)
+#       KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained)
+#       # check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
 
-#Test
-[KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained)
-KNet_Pipeline.save()
+# #Test
+# [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained)
+# KNet_Pipeline.save()
 
 
 
