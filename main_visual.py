@@ -102,10 +102,11 @@ print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
 ##############################
 ### Evaluate Kalman Filter ###
 ##############################
-print("Evaluate Kalman Filter True")
-[MSE_KF_linear_arr, MSE_KF_linear_avg, MSE_KF_dB_avg] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained)
-#print("Evaluate Kalman Filter Partial")
-#[MSE_KF_linear_arr_partialh, MSE_KF_linear_avg_partialh, MSE_KF_dB_avg_partialh] = KFTest(sys_model_partialh, test_input, test_target)
+if pendulum_data_flag:
+   print("Evaluate Kalman Filter True")
+   [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained)
+   #print("Evaluate Kalman Filter Partial")
+   #[MSE_KF_linear_arr_partialh, MSE_KF_linear_avg_partialh, MSE_KF_dB_avg_partialh] = KFTest(sys_model_partialh, test_input, test_target)
 
 # DatafolderName = 'Data' + '/'
 # DataResultName = '10x10_Ttest1000' 

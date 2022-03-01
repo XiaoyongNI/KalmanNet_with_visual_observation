@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-from EKF import ExtendedKalmanFilter
+from EKF_visual import ExtendedKalmanFilter
 
 
 def EKFTest(SysModel, test_input, test_target, model_AE_conv, modelKnowledge = 'full', allStates=True):
@@ -18,7 +18,7 @@ def EKFTest(SysModel, test_input, test_target, model_AE_conv, modelKnowledge = '
     EKF.InitSequence(SysModel.m1x_0, SysModel.m2x_0)
 
     KG_array = torch.zeros_like(EKF.KG_array)
-    y_test_decoaded = torch.empty([N_T, SysModel.m, SysModel.T_test])
+    y_test_decoaded = torch.empty([N_T, SysModel.n, SysModel.T_test])
     EKF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
 
     for j in range(0, N_T):
