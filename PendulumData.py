@@ -127,6 +127,20 @@ class Pendulum:
             states = np.concatenate((states[..., 0:1] + self.sim_dt * velNew, velNew), axis=1)
         return states
 
+    def _transition_function_KNet(self, x): # KNet version, change states to x_t
+        nSteps = self.dt / self.sim_dt
+
+        if nSteps != np.round(nSteps):
+            print('Warning from Pendulum: dt does not match up')
+            nSteps = np.round(nSteps)
+
+        c = self.g * self.length * self.mass / self.inertia
+        for i in range(0, int(nSteps)):
+            velNew = x[1:2] + self.sim_dt * (c * np.sin(x[0:1])                                                     
+                                                     - x[1:2] * self.friction)
+            x = torch.from_numpy(np.concatenate((x[0:1] + self.sim_dt * velNew, velNew), axis=0))
+        return x
+
     def _get_next_states(self, states, actions):
         actions = np.maximum(-self.max_torque, np.minimum(actions, self.max_torque))
 

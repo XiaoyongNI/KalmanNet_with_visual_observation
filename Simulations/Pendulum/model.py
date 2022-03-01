@@ -3,7 +3,7 @@ import torch
 import numpy as np
 # torch.pi = torch.acos(torch.zeros(1)).item() * 2 # which is 3.1415927410125732
 from torch import autograd
-from parameters import NL_m, NL_n, delta_t, delta_t_gen, H_design, delta_t_mod,H_mod
+from parameters import NL_m, NL_n, delta_t, delta_t_gen, H_design
 
 import sys
 import os
@@ -29,6 +29,7 @@ data = Pendulum(img_size=img_size,
                 pendulum_params=pend_params,
                 seed=0)
 
+
 def f_gen(x):
     g = 9.81 # Gravitational Acceleration
     L = 1 # Radius of pendulum
@@ -46,8 +47,8 @@ def f_gen(x):
 #     return result
 
 def f(x):
-    actions = 0 # Assume no action
-    x = data._transition_function(x, actions)
+    x_np = x.detach().numpy()
+    x = data._transition_function_KNet(x_np)
     return x
 
 
@@ -63,9 +64,9 @@ def fInacc(x):
     # print(result.size())
     return result
 
-def hInacc(x):
-    return torch.matmul(H_mod,x)
-    #return toSpherical(x)
+# def hInacc(x):
+#     return torch.matmul(H_mod,x)
+#     #return toSpherical(x)
 
 def getJacobian(x, a):
     

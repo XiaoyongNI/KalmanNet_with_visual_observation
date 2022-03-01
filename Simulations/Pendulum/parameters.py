@@ -13,7 +13,7 @@ else:
 ### Design Parameters ###
 #########################
 NL_m = 2
-NL_n = 2
+NL_n = 1
 
 NL_m1_0 = torch.FloatTensor([np.pi,0]) #uniform(0, 2 * np.pi)
 m1x_0_design_test = torch.ones(NL_m, 1)
@@ -37,8 +37,7 @@ NL_T_test = 40
 T_gen = math.ceil(NL_T_test / ratio)
 # T_test_gen = math.ceil(T_test / ratio)
 
-H_design = torch.tensor([[1.0, 0.0],
-                         [0.0, 0.0]])
+H_design = torch.tensor([1.0, 0.0])
 
 # H_design_inv = torch.inverse(H_design)
 
@@ -94,7 +93,7 @@ rotate_matrix = torch.tensor([[cos_alpha, -sin_alpha],
                               [sin_alpha, cos_alpha]]).to(cuda0)
 # print(rotate_matrix)
 # F_rotated = torch.mm(F,rotate_matrix) #inaccurate process model
-H_mod = torch.mm(H_design,rotate_matrix) #inaccurate observation model
+# H_mod = torch.mm(H_design,rotate_matrix) #inaccurate observation model
 # H_mod = torch.eye(n)
 #H_mod = H_design
 # H_mod_inv = torch.inverse(H_mod)

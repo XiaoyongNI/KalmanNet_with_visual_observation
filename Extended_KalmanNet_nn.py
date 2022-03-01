@@ -28,7 +28,7 @@ class KalmanNetNN(torch.nn.Module):
     def Build(self, ssModel, infoString = 'fullInfo'):
 
         self.InitSystemDynamics(ssModel.f, ssModel.h, ssModel.m, ssModel.n, infoString = 'fullInfo')
-        self.InitSequence(ssModel.m1x_0, ssModel.T)
+        self.InitSequence(ssModel.m1x_0)
 
         # Number of neurons in the 1st hidden layer
         H1_KNet = (ssModel.m + ssModel.n) * (10) * 8
@@ -121,37 +121,42 @@ class KalmanNetNN(torch.nn.Module):
     ###########################
     ### Initialize Sequence ###
     ###########################
-    def InitSequence(self, M1_0, T):
+    def InitSequence(self, M1_0):
 
         self.m1x_posterior = torch.squeeze(M1_0)
         self.m1x_posterior_previous = 0 # for t=0
 
-        self.T = T
-        self.x_out = torch.empty(self.m, T)
+        # self.x_out = torch.empty(self.m, T)
 
         self.state_process_posterior_0 = torch.squeeze(M1_0)
         self.m1x_prior_previous = self.m1x_posterior
 
-        # KGain saving
-        self.i = 0
-        self.KGain_array = self.KG_array = torch.zeros((self.T,self.m,self.n))
+        # # KGain saving
+        # self.i = 0
+        # self.KGain_array = self.KG_array = torch.zeros((self.T,self.m,self.n))
 
     ######################
     ### Compute Priors ###
     ######################
-    def step_prior(self):
+    def step_prior(self, fix_H_flag):
         # Predict the 1-st moment of x
         self.m1x_prior = torch.squeeze(self.f(self.m1x_posterior))
-
-        # Predict the 1-st moment of y
-        self.m1y = torch.squeeze(self.h(self.m1x_prior))
 
         # Update Jacobians
         #self.JFt = get_Jacobian(self.m1x_posterior, self.fString)
         #self.JHt = get_Jacobian(self.m1x_prior, self.hString)
 
         self.state_process_prior_0 = torch.squeeze(self.f(self.state_process_posterior_0))
-        self.obs_process_0 = torch.squeeze(self.h(self.state_process_prior_0))
+
+        if fix_H_flag:            
+            self.obs_process_0 = torch.squeeze(self.h(self.state_process_prior_0))
+            # Predict the 1-st moment of y
+            self.m1y = torch.squeeze(self.h(self.m1x_prior))
+        else:# H is learned FC
+            self.H_FC.eval()
+            self.obs_process_0 = self.H_FC(self.state_process_prior_0.reshape(1, self.m))
+            # Predict the 1-st moment of y
+            self.m1y = self.H_FC(self.m1x_prior.reshape(1, self.m)).reshape(self.d, 1)
 
     ##############################
     ### Kalman Gain Estimation ###
@@ -192,7 +197,7 @@ class KalmanNetNN(torch.nn.Module):
         #y_norm = func.normalize(y, p=2, dim=0, eps=1e-12, out=None);
 
         # Input for counting
-        count_norm = func.normalize(torch.tensor([self.i]).float(),dim=0, eps=1e-12,out=None)
+        # count_norm = func.normalize(torch.tensor([self.i]).float(),dim=0, eps=1e-12,out=None)
 
         # KGain Net Input
         KGainNet_in = torch.cat([y_f1_norm,m1x_f3_norm,m1x_f4_norm], dim=0)
@@ -206,16 +211,16 @@ class KalmanNetNN(torch.nn.Module):
     #######################
     ### Kalman Net Step ###
     #######################
-    def KNet_step(self, y):
+    def KNet_step(self, y, fix_H_flag):
         # Compute Priors
-        self.step_prior()
+        self.step_prior(fix_H_flag)
 
         # Compute Kalman Gain
         self.step_KGain_est(y)
 
         # Save KGain in array
-        self.KGain_array[self.i] = self.KGain
-        self.i += 1
+        # self.KGain_array[self.i] = self.KGain
+        # self.i += 1
 
         # Innovation
         # y_obs = torch.unsqueeze(y, 1)
@@ -267,15 +272,14 @@ class KalmanNetNN(torch.nn.Module):
     ###############
     ### Forward ###
     ###############
-    def forward(self, y):
-        yt = torch.squeeze(y)
+    def forward(self, y, fix_H_flag):
+        yt = torch.squeeze(y,dim=1)
         '''
         for t in range(0, self.T):
             self.x_out[:, t] = self.KNet_step(y[:, t])
         '''
-        self.x_out = self.KNet_step(yt)
 
-        return self.x_out
+        return self.KNet_step(yt, fix_H_flag)
 
     #########################
     ### Init Hidden State ###

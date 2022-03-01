@@ -79,7 +79,7 @@ class Pipeline_KF:
                     y_cv = cv_input[j, :, :, :]
                     for t in range(0, self.ssModel.T):
                         AE_input = y_cv[t, :, :].reshape(1,1,24,24)/255
-                        y_cv_decoaded_t = model_AE_conv(AE_input).squeeze()
+                        y_cv_decoaded_t = model_AE_conv(AE_input)
                         x_out_cv[:, t] = self.model(y_cv_decoaded_t, self.fix_H_flag)
                 else:
                     y_cv = cv_input[j, :, :]
@@ -116,7 +116,7 @@ class Pipeline_KF:
                     y_training = train_input[n_e, :, :, :]
                     for t in range(0, self.ssModel.T):
                         AE_input = y_training[t, :, :].reshape(1,1,24,24)/255
-                        y_training_decoaded_t = model_AE_conv(AE_input).squeeze()
+                        y_training_decoaded_t = model_AE_conv(AE_input)
                         x_out_training[:, t] = self.model(y_training_decoaded_t, self.fix_H_flag)
                 else:
                     y_training = train_input[n_e, :, :]
@@ -167,9 +167,9 @@ class Pipeline_KF:
                 d_cv = self.MSE_cv_dB_epoch[ti] - self.MSE_cv_dB_epoch[ti - 1]
                 #print("diff MSE Training :", d_train, "[dB]", "diff MSE Validation :", d_cv, "[dB]")
 
-            #print("Optimal idx:", self.MSE_cv_idx_opt, "Optimal :", self.MSE_cv_dB_opt, "[dB]")
+            print("Optimal idx:", self.MSE_cv_idx_opt, "Optimal :", self.MSE_cv_dB_opt, "[dB]")
         #self.PlotTrain_KF(self.MSE_train_linear_epoch, self.MSE_train_dB_epoch)
-        self.print_process(Val_loss_list, Train_loss_list, title)
+        # self.print_process(Val_loss_list, Train_loss_list, title)
 
     def print_process(self, val_loss_list, train_loss_list, title):
         fig = plt.figure(figsize=(10, 7))
@@ -198,7 +198,7 @@ class Pipeline_KF:
                 y_mdl_tst = test_input[j, :, :, :]
                 for t in range(0, self.ssModel.T_test):
                     AE_input = y_mdl_tst[t, :, :].reshape(1, 1, 24, 24) / 255
-                    y_test_decoaded_t = model_AE_conv(AE_input).squeeze()
+                    y_test_decoaded_t = model_AE_conv(AE_input)
                     x_out_test[:, t] = self.model(y_test_decoaded_t, self.fix_H_flag)
             else:
                 y_mdl_tst = test_input[j, :, :]
