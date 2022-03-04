@@ -5,7 +5,7 @@ from datetime import datetime # getting current time
 from EKF_test_visual import EKFTest
 from Linear_sysmdl_visual import SystemModel
 from Extended_sysmdl_viaual import SystemModel as NL_SystemModel
-from Extended_data_visual import DataGen,DataLoader,DataLoader_GPU, Decimate_and_perturbate_Data,Short_Traj_Split
+from Extended_data_visual import DataGen,DataLoader,DataLoader_GPU, getObs
 from Extended_data_visual import N_E, N_CV, N_T, F, F_rotated, T, T_test, m1_0, m2_0, m, n,H_fully_connected, H_matrix_for_visual, b_for_visual
 from visual_supplementary import y_size, check_changs
 from Pipeline_KF_visual import Pipeline_KF
@@ -41,20 +41,22 @@ print("Current Time =", strTime)
 
 
 ############ Hyper Parameters ##################
-learning_rate_list=[2e-5]
-weight_decay_list=[1e-4]
+learning_rate_list=[1e-4]
+weight_decay_list=[1e-5]
 fix_H_flag=True
-pendulum_data_flag=True
-encoded_dimention = 1
+pendulum_data_flag=True # true for pendulum data, false for synthetic data
+encoded_dimention = 1 # the output dim of encoder
+matrix_data_flag = True # true for data in matrix form, false for data in image form
 ################################################
 
 ####################
 ### Design Model ###
 ####################
-r2 = torch.tensor([1.])
-vdB = -20 # ratio v=q2/r2
-v = 10**(vdB/10)
-q2 = torch.mul(v,r2)
+r2 = torch.tensor([1e-4])
+# vdB = -20 # ratio v=q2/r2
+# v = 10**(vdB/10)
+# q2 = torch.mul(v,r2)
+q2 = torch.tensor([0.001**2])
 print("1/r2 [dB]: ", 10 * torch.log10(1/r2[0]))
 print("1/q2 [dB]: ", 10 * torch.log10(1/q2[0]))
 # True model
@@ -95,6 +97,19 @@ else:
 #DataGen(sys_model, dataFolderName + dataFileName, T, T_test,randomInit=False)  # taking time
 print("Data Load")
 [train_input, train_target, cv_input, cv_target, test_input, test_target] = DataLoader_GPU(dataFolderName + dataFileName)
+
+if matrix_data_flag:
+   # Observations: y = h(x) + R
+   train_input = getObs(train_target,h)  
+   train_input = train_input + torch.randn_like(train_input) * r
+
+   cv_input = getObs(cv_target,h)  
+   cv_input = cv_input + torch.randn_like(cv_input) * r
+
+   test_input = getObs(test_target,h)  
+   test_input = test_input + torch.randn_like(test_input) * r
+
+# Print out dataset
 print("trainset size: x {} y {}".format(train_target.size(),train_input.size()))
 print("cvset size: x {} y {}".format(cv_target.size(), cv_input.size()))
 print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
@@ -120,32 +135,32 @@ if pendulum_data_flag:
 ##################
 ###  KalmanNet ###
 ##################
-# print("Start KNet pipeline")
-# modelFolder = 'KNet' + '/'
-# KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet", data_name)
-# KNet_Pipeline.setssModel(sys_model)
+print("Start KNet pipeline")
+modelFolder = 'KNet' + '/'
+KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet", data_name)
+KNet_Pipeline.setssModel(sys_model)
 
-# if pendulum_data_flag:
-#    KNet_model = Extended_KalmanNetNN()
-#    KNet_model.Build(sys_model)
-# else:
-#    KNet_model = KalmanNetNN()
-#    KNet_model.Build(sys_model,h_fully_connected)
-# KNet_Pipeline.setModel(KNet_model)
-# # check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
+if pendulum_data_flag:
+   KNet_model = Extended_KalmanNetNN()
+   KNet_model.Build(sys_model)
+else:
+   KNet_model = KalmanNetNN()
+   KNet_model.Build(sys_model,h_fully_connected)
+KNet_Pipeline.setModel(KNet_model)
+# check_changs(KNet_Pipeline, model_AE_trained,model_AE_conv_trained, pendulum_data_flag )
 
-# for lr in learning_rate_list:
-#    for wd in weight_decay_list:
-#       KNet_Pipeline.setTrainingParams(fix_H_flag, pendulum_data_flag, n_Epochs=300, n_Batch=64, learningRate=lr, weightDecay=wd)
-#       #KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
-#       title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
-#       print(title)
-#       KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained)
-#       # check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
+for lr in learning_rate_list:
+   for wd in weight_decay_list:
+      KNet_Pipeline.setTrainingParams(fix_H_flag, pendulum_data_flag, n_Epochs=300, n_Batch=64, learningRate=lr, weightDecay=wd)
+      #KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
+      title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
+      print(title)
+      KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained)
+      # check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
 
-# #Test
-# [KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained)
-# KNet_Pipeline.save()
+#Test
+[KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained)
+KNet_Pipeline.save()
 
 
 
