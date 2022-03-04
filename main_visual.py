@@ -19,6 +19,8 @@ sys.path.insert(1, path_model)
 from parameters import NL_T, NL_T_test, NL_m1_0, NL_m2_0, NL_m, NL_n
 from model import f, h
 
+torch.set_default_dtype(torch.float32)
+
 if torch.cuda.is_available():
    dev = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
    torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -44,7 +46,7 @@ print("Current Time =", strTime)
 learning_rate_list=[1e-4]
 weight_decay_list=[1e-5]
 fix_H_flag=True
-pendulum_data_flag=True # true for pendulum data, false for synthetic data
+pendulum_data_flag=True # true for pendulum data, false for linear synthetic data
 encoded_dimention = 1 # the output dim of encoder
 matrix_data_flag = True # true for data in matrix form, false for data in image form
 ################################################
@@ -100,26 +102,29 @@ print("Data Load")
 
 if matrix_data_flag:
    # Observations: y = h(x) + R
-   train_input = getObs(train_target,h)  
+   train_input = getObs(train_target,h,N_E,NL_n,NL_T)  
    train_input = train_input + torch.randn_like(train_input) * r
 
-   cv_input = getObs(cv_target,h)  
+   cv_input = getObs(cv_target,h,N_CV,NL_n,NL_T)  
    cv_input = cv_input + torch.randn_like(cv_input) * r
 
-   test_input = getObs(test_target,h)  
+   test_input = getObs(test_target,h,N_T,NL_n,NL_T_test)  
    test_input = test_input + torch.randn_like(test_input) * r
 
 # Print out dataset
 print("trainset size: x {} y {}".format(train_target.size(),train_input.size()))
 print("cvset size: x {} y {}".format(cv_target.size(), cv_input.size()))
 print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
+# print("trainset dtype: x {} y {}".format(train_target.type(),train_input.type()))
+# print("cvset dtype: x {} y {}".format(cv_target.type(), cv_input.type()))
+# print("testset dtype: x {} y {}".format(test_target.type(), test_input.type()))
 
 ##############################
 ### Evaluate Kalman Filter ###
 ##############################
 if pendulum_data_flag:
    print("Evaluate Kalman Filter True")
-   [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained)
+   [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained, matrix_data_flag)
    #print("Evaluate Kalman Filter Partial")
    #[MSE_KF_linear_arr_partialh, MSE_KF_linear_avg_partialh, MSE_KF_dB_avg_partialh] = KFTest(sys_model_partialh, test_input, test_target)
 

@@ -16,7 +16,7 @@ else:
 #######################
 
 # Number of Training Examples
-N_E = 1000
+N_E = 5000
 # Number of Cross Validation Examples
 N_CV = 100
 N_T = 100
@@ -166,12 +166,12 @@ def DataLoader(fileName):
 
 def DataLoader_GPU(fileName):
     [training_input, training_target, cv_input, cv_target, test_input, test_target] = torch.utils.data.DataLoader(torch.load(fileName),pin_memory = False)
-    training_input = training_input.squeeze().to(dev)
-    training_target = training_target.squeeze().to(dev)
-    cv_input = cv_input.squeeze().to(dev)
-    cv_target =cv_target.squeeze().to(dev)
-    test_input = test_input.squeeze().to(dev)
-    test_target = test_target.squeeze().to(dev)
+    training_input = training_input.squeeze().to(dev).float()
+    training_target = training_target.squeeze().to(dev).float()
+    cv_input = cv_input.squeeze().to(dev).float()
+    cv_target =cv_target.squeeze().to(dev).float()
+    test_input = test_input.squeeze().to(dev).float()
+    test_target = test_target.squeeze().to(dev).float()
     return [training_input, training_target, cv_input, cv_target, test_input, test_target]
 
 def DecimateData(all_tensors, t_gen,t_mod, offset=0):
@@ -191,26 +191,10 @@ def DecimateData(all_tensors, t_gen,t_mod, offset=0):
 
     return all_tensors_out
 
-def Decimate_and_perturbate_Data(true_process, delta_t, delta_t_mod, N_examples, h, lambda_r, offset=0):
-    
-    # Decimate high resolution process
-    decimated_process = DecimateData(true_process, delta_t, delta_t_mod, offset)
 
-    noise_free_obs = getObs(decimated_process,h)
-
-    # Replicate for computation purposes
-    decimated_process = torch.cat(int(N_examples)*[decimated_process])
-    noise_free_obs = torch.cat(int(N_examples)*[noise_free_obs])
-
-
-    # Observations; additive Gaussian Noise
-    observations = noise_free_obs + torch.randn_like(decimated_process) * lambda_r
-
-    return [decimated_process, observations]
-
-def getObs(sequences, h):
+def getObs(sequences, h, N_samples, n, T):
     i = 0
-    sequences_out = torch.zeros_like(sequences)
+    sequences_out = torch.empty(N_samples, n, T)
     for sequence in sequences:
         for t in range(sequence.size()[1]):
             sequences_out[i,:,t] = h(sequence[:,t])

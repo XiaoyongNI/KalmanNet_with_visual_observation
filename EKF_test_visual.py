@@ -4,7 +4,7 @@ import torch
 from EKF_visual import ExtendedKalmanFilter
 
 
-def EKFTest(SysModel, test_input, test_target, model_AE_conv, modelKnowledge = 'full', allStates=True):
+def EKFTest(SysModel, test_input, test_target, model_AE_conv, matrix_data_flag, modelKnowledge = 'full', allStates=True):
 
     N_T = test_target.size()[0]
 
@@ -22,10 +22,13 @@ def EKFTest(SysModel, test_input, test_target, model_AE_conv, modelKnowledge = '
     EKF_out = torch.empty([N_T, SysModel.m, SysModel.T_test])
 
     for j in range(0, N_T):
-        y_mdl_tst = test_input[j, :, :, :]
-        for t in range(0, SysModel.T_test):
-            AE_input = y_mdl_tst[t, :, :].reshape(1, 1, 24, 24) / 255
-            y_test_decoaded[j,:,t] = model_AE_conv(AE_input)
+        if matrix_data_flag:
+            y_test_decoaded = test_input
+        else: # use the output of trained encoder as the input of KF
+            y_mdl_tst = test_input[j, :, :, :]
+            for t in range(0, SysModel.T_test):
+                AE_input = y_mdl_tst[t, :, :].reshape(1, 1, 24, 24) / 255
+                y_test_decoaded[j,:,t] = model_AE_conv(AE_input)
 
         EKF.GenerateSequence(y_test_decoaded[j, :, :], EKF.T_test)
 
