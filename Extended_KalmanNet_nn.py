@@ -273,7 +273,12 @@ class KalmanNetNN(torch.nn.Module):
     ### Forward ###
     ###############
     def forward(self, y, fix_H_flag):
-        yt = torch.squeeze(y,dim=1)
+        if len(list(y.size())) >= 2:
+            if  len(list(torch.squeeze(y).size()))==0 and self.n==1:
+                yt = torch.squeeze(y, dim = 1)
+            yt = torch.squeeze(y)
+        else:
+            yt = y
         '''
         for t in range(0, self.T):
             self.x_out[:, t] = self.KNet_step(y[:, t])

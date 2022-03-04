@@ -19,8 +19,6 @@ sys.path.insert(1, path_model)
 from parameters import NL_T, NL_T_test, NL_m1_0, NL_m2_0, NL_m, NL_n
 from model import f, h
 
-torch.set_default_dtype(torch.float32)
-
 if torch.cuda.is_available():
    dev = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
    torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -58,7 +56,7 @@ r2 = torch.tensor([1e-4])
 # vdB = -20 # ratio v=q2/r2
 # v = 10**(vdB/10)
 # q2 = torch.mul(v,r2)
-q2 = torch.tensor([100]) # Tuned
+q2 = torch.tensor([1e-5]) # Tuned
 print("1/r2 [dB]: ", 10 * torch.log10(1/r2[0]))
 print("1/q2 [dB]: ", 10 * torch.log10(1/q2[0]))
 # True model
@@ -122,9 +120,9 @@ print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
 ##############################
 ### Evaluate Kalman Filter ###
 ##############################
-if pendulum_data_flag:
-   print("Evaluate Kalman Filter True")
-   [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained, matrix_data_flag)
+# if pendulum_data_flag:
+#    print("Evaluate Kalman Filter True")
+#    [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained, matrix_data_flag)
    #print("Evaluate Kalman Filter Partial")
    #[MSE_KF_linear_arr_partialh, MSE_KF_linear_avg_partialh, MSE_KF_dB_avg_partialh] = KFTest(sys_model_partialh, test_input, test_target)
 
@@ -156,7 +154,7 @@ KNet_Pipeline.setModel(KNet_model)
 
 for lr in learning_rate_list:
    for wd in weight_decay_list:
-      KNet_Pipeline.setTrainingParams(fix_H_flag, pendulum_data_flag, n_Epochs=300, n_Batch=64, learningRate=lr, weightDecay=wd)
+      KNet_Pipeline.setTrainingParams(fix_H_flag, pendulum_data_flag, n_Epochs=500, n_Batch=10, learningRate=lr, weightDecay=wd)
       #KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
       title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
       print(title)
