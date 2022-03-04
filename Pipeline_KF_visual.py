@@ -43,7 +43,7 @@ class Pipeline_KF:
         self.pendulum_data_flag = pendulum_data_flag
 
 
-    def NNTrain(self, n_Examples, train_input, train_target, n_CV, cv_input, cv_target, title, model_AE, model_AE_conv):
+    def NNTrain(self, n_Examples, train_input, train_target, n_CV, cv_input, cv_target, title, model_AE, model_AE_conv,matrix_data_flag):
 
         self.N_E = n_Examples
         self.N_CV = n_CV
@@ -76,11 +76,16 @@ class Pipeline_KF:
                 self.model.InitSequence(self.ssModel.m1x_0)
                 x_out_cv = torch.empty(self.ssModel.m, self.ssModel.T)
                 if self.pendulum_data_flag:
-                    y_cv = cv_input[j, :, :, :]
-                    for t in range(0, self.ssModel.T):
-                        AE_input = y_cv[t, :, :].reshape(1,1,24,24)/255
-                        y_cv_decoaded_t = model_AE_conv(AE_input)
-                        x_out_cv[:, t] = self.model(y_cv_decoaded_t, self.fix_H_flag)
+                    if matrix_data_flag:
+                        y_cv = cv_input[j, :, :]
+                        for t in range(0, self.ssModel.T):
+                            x_out_cv[:, t] = self.model(y_cv[:, t], self.fix_H_flag)  
+                    else:
+                        y_cv = cv_input[j, :, :, :]
+                        for t in range(0, self.ssModel.T):
+                            AE_input = y_cv[t, :, :].reshape(1,1,24,24)/255
+                            y_cv_decoaded_t = model_AE_conv(AE_input)
+                            x_out_cv[:, t] = self.model(y_cv_decoaded_t, self.fix_H_flag)
                 else:
                     y_cv = cv_input[j, :, :]
                     for t in range(0, self.ssModel.T):
@@ -113,11 +118,16 @@ class Pipeline_KF:
                 x_out_training = torch.empty(self.ssModel.m, self.ssModel.T)
                 n_e = random.randint(0, self.N_E - 1)
                 if self.pendulum_data_flag:
-                    y_training = train_input[n_e, :, :, :]
-                    for t in range(0, self.ssModel.T):
-                        AE_input = y_training[t, :, :].reshape(1,1,24,24)/255
-                        y_training_decoaded_t = model_AE_conv(AE_input)
-                        x_out_training[:, t] = self.model(y_training_decoaded_t, self.fix_H_flag)
+                    if matrix_data_flag:
+                        y_training = train_input[n_e, :, :]
+                        for t in range(0, self.ssModel.T):
+                            x_out_training[:, t] = self.model(y_training[:, t], self.fix_H_flag)
+                    else:
+                        y_training = train_input[n_e, :, :, :]
+                        for t in range(0, self.ssModel.T):
+                            AE_input = y_training[t, :, :].reshape(1,1,24,24)/255
+                            y_training_decoaded_t = model_AE_conv(AE_input)
+                            x_out_training[:, t] = self.model(y_training_decoaded_t, self.fix_H_flag)
                 else:
                     y_training = train_input[n_e, :, :]
                     for t in range(0, self.ssModel.T):
@@ -180,7 +190,7 @@ class Pipeline_KF:
         plt.legend()
         plt.savefig(self.modelName)
 
-    def NNTest(self, n_Test, test_input, test_target, model_AE, model_AE_conv):
+    def NNTest(self, n_Test, test_input, test_target, model_AE, model_AE_conv, matrix_data_flag):
 
         self.N_T = n_Test
         self.MSE_test_linear_arr = torch.empty([self.N_T])
@@ -195,11 +205,16 @@ class Pipeline_KF:
             self.model.InitSequence(self.ssModel.m1x_0)
             x_out_test = torch.empty(self.ssModel.m, self.ssModel.T_test)
             if self.pendulum_data_flag:
-                y_mdl_tst = test_input[j, :, :, :]
-                for t in range(0, self.ssModel.T_test):
-                    AE_input = y_mdl_tst[t, :, :].reshape(1, 1, 24, 24) / 255
-                    y_test_decoaded_t = model_AE_conv(AE_input)
-                    x_out_test[:, t] = self.model(y_test_decoaded_t, self.fix_H_flag)
+                if matrix_data_flag:
+                    y_mdl_tst = test_input[j, :, :]
+                    for t in range(0, self.ssModel.T_test):
+                        x_out_test[:, t] = self.model(y_mdl_tst[:, t], self.fix_H_flag)
+                else:
+                    y_mdl_tst = test_input[j, :, :, :]
+                    for t in range(0, self.ssModel.T_test):
+                        AE_input = y_mdl_tst[t, :, :].reshape(1, 1, 24, 24) / 255
+                        y_test_decoaded_t = model_AE_conv(AE_input)
+                        x_out_test[:, t] = self.model(y_test_decoaded_t, self.fix_H_flag)
             else:
                 y_mdl_tst = test_input[j, :, :]
                 for t in range(0, self.ssModel.T_test):

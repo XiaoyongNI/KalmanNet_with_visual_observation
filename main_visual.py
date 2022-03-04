@@ -58,7 +58,7 @@ r2 = torch.tensor([1e-4])
 # vdB = -20 # ratio v=q2/r2
 # v = 10**(vdB/10)
 # q2 = torch.mul(v,r2)
-q2 = torch.tensor([0.001**2])
+q2 = torch.tensor([100]) # Tuned
 print("1/r2 [dB]: ", 10 * torch.log10(1/r2[0]))
 print("1/q2 [dB]: ", 10 * torch.log10(1/q2[0]))
 # True model
@@ -160,11 +160,11 @@ for lr in learning_rate_list:
       #KNet_Pipeline.model = torch.load(modelFolder+"model_KNet.pt")
       title="LR: {} Weight Decay: {} Data {}".format(lr,wd,data_name )
       print(title)
-      KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained)
+      KNet_Pipeline.NNTrain(N_E, train_input, train_target, N_CV, cv_input, cv_target, title, model_AE_trained, model_AE_conv_trained, matrix_data_flag)
       # check_changs(KNet_Pipeline, model_AE_trained, model_AE_conv_trained, pendulum_data_flag )
 
 #Test
-[KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained)
+[KNet_MSE_test_linear_arr, KNet_MSE_test_linear_avg, KNet_MSE_test_dB_avg, KNet_test] = KNet_Pipeline.NNTest(N_T, test_input, test_target, model_AE_trained, model_AE_conv_trained, matrix_data_flag)
 KNet_Pipeline.save()
 
 
