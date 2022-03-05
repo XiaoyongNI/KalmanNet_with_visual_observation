@@ -276,7 +276,8 @@ class KalmanNetNN(torch.nn.Module):
         if len(list(y.size())) >= 2:
             if  len(list(torch.squeeze(y).size()))==0 and self.n==1:
                 yt = torch.squeeze(y, dim = 1)
-            yt = torch.squeeze(y)
+            else:
+                yt = torch.squeeze(y)
         else:
             yt = y
         '''
