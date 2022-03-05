@@ -46,7 +46,7 @@ weight_decay_list=[1e-5]
 fix_H_flag=True
 pendulum_data_flag=True # true for pendulum data, false for linear synthetic data
 encoded_dimention = 1 # the output dim of encoder
-matrix_data_flag = True # true for data in matrix form, false for data in image form
+matrix_data_flag = False # true for data in matrix form, false for data in image form
 ################################################
 
 ####################

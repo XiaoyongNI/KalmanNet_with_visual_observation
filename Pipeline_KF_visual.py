@@ -167,9 +167,9 @@ class Pipeline_KF:
             ### Training Summary ###
             ########################
             print(ti, "MSE Training :", self.MSE_train_dB_epoch[ti], "[dB]", "MSE Validation :", self.MSE_cv_dB_epoch[ti],"[dB]","timing ", time.time() - t)
-            if (self.MSE_cv_dB_epoch[ti]>12 and ti>100):
-                print("configuration is not good enough")
-                break
+            # if (self.MSE_cv_dB_epoch[ti]>12 and ti>100):
+            #     print("configuration is not good enough")
+            #     break
             Train_loss_list.append(self.MSE_train_dB_epoch[ti])
             Val_loss_list.append(self.MSE_cv_dB_epoch[ti])
             if (ti > 1):
