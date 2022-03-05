@@ -1,8 +1,4 @@
-# KalmanNet
-
-## Link to paper
-
-[KalmanNet: Neural Network Aided Kalman Filtering for Partially Known Dynamics](https://arxiv.org/abs/2107.10043)
+# KalmanNet with Visual Observation
 
 ## Running code
 
