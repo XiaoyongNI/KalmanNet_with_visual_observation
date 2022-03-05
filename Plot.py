@@ -3,11 +3,11 @@ import matplotlib as mpl
 mpl.rcParams['agg.path.chunksize'] = 1E4
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-import seaborn as sns
+#import seaborn as sns
 import numpy as np
-from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
-from scipy.signal import find_peaks
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
+#from scipy.signal import find_peaks
+#from mpl.mplot3d import Axes3D
 
 if torch.cuda.is_available():
     cuda0 = torch.device("cuda:0")  # you can continue going on here, like cuda:1 cuda:2....etc.
@@ -30,8 +30,7 @@ class Plot:
         self.folderName = folderName
         self.modelName = modelName
 
-    def NNPlot_epochs(self, N_Epochs_plt, MSE_KF_dB_avg,
-                      MSE_test_dB_avg, MSE_cv_dB_epoch, MSE_train_dB_epoch):
+    def NNPlot_epochs(self, N_Epochs_plt, MSE_KF_dB_avg,MSE_test_dB_avg, MSE_cv_dB_epoch, MSE_train_dB_epoch):
 
         # File Name
         fileName = self.folderName + 'plt_epochs_dB'
@@ -117,8 +116,7 @@ class Plot:
         print(res_grid[1][2] - res_grid[0][2], "[dB]", res_grid[2][2] - res_grid[1][2], "[dB]")
         print("KalmanNet", res_grid[3][2], "[dB]", "KalmanNet Diff", res_grid[3][2] - res_grid[1][2], "[dB]")
 
-    def NNPlot_test(MSE_KF_linear_arr, MSE_KF_linear_avg, MSE_KF_dB_avg,
-               MSE_test_linear_arr, MSE_test_linear_avg, MSE_test_dB_avg):
+    def NNPlot_test(MSE_KF_linear_arr, MSE_KF_linear_avg, MSE_KF_dB_avg,MSE_test_linear_arr, MSE_test_linear_avg, MSE_test_dB_avg):
 
 
         N_Epochs_plt = 100
@@ -232,8 +230,7 @@ class Plot_RTS(Plot):
         self.folderName = folderName
         self.modelName = modelName
 
-    def NNPlot_epochs(self, N_MiniBatchTrain_plt, BatchSize, MSE_KF_dB_avg, MSE_RTS_dB_avg,
-                      MSE_test_dB_avg, MSE_cv_dB_epoch, MSE_train_dB_epoch):
+    def NNPlot_epochs(self, N_MiniBatchTrain_plt, BatchSize, MSE_KF_dB_avg, MSE_RTS_dB_avg,MSE_test_dB_avg, MSE_cv_dB_epoch, MSE_train_dB_epoch):
         N_Epochs_plt = np.floor(N_MiniBatchTrain_plt/BatchSize).astype(int) # number of epochs
         
         # File Name
@@ -600,11 +597,11 @@ class Plot_extended(Plot_RTS):
                 elif(title == "RTSNet" or title =="KalmanNet"):
                     c = 'g'
                 else:
-                    c = 'grey'
+                    c = 'm'
                     # y_al = 0.68
 
                 ax.set_axis_off()
-                # ax.set_title(title, y=y_al, fontdict={'fontsize': 15,'fontweight' : 20,'verticalalignment': 'baseline'})
+                ax.set_title(title, y=y_al, fontdict={'fontsize': 15,'fontweight' : 20,'verticalalignment': 'baseline'})
                 ax.plot(inputs_numpy[0,0,:], inputs_numpy[0,1,:], inputs_numpy[0,2,:], c, linewidth=0.5)
 
                 ## Plot display 
