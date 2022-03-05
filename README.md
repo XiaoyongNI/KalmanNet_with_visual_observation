@@ -1,5 +1,7 @@
 # KalmanNet with Visual Observation
 
+All files are modified based on the KalmanNet_TSP code https://github.com/KalmanNet/KalmanNet_TSP, adding the suffix of "_visual".
+
 ## Running code
 
 ### Branch - main

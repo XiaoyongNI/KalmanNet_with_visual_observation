@@ -6,6 +6,8 @@ import torch.nn.functional as func
 
 from filing_paths import path_model
 
+from visual_supplementary import decoaded_dimention
+
 import sys
 sys.path.insert(1, path_model)
 from model import getJacobian
@@ -25,9 +27,9 @@ class KalmanNetNN(torch.nn.Module):
     ### Initialize Kalman Gain Network ###
     ######################################
 
-    def Build(self, ssModel, infoString = 'fullInfo'):
+    def Build(self, ssModel, infoString = 'fullInfo', H_FC = None):
 
-        self.InitSystemDynamics(ssModel.f, ssModel.h, ssModel.m, ssModel.n, infoString = 'fullInfo')
+        self.InitSystemDynamics(ssModel.f, ssModel.h, ssModel.m, ssModel.n, infoString, H_FC)
         self.InitSequence(ssModel.m1x_0)
 
         # Number of neurons in the 1st hidden layer
@@ -101,7 +103,7 @@ class KalmanNetNN(torch.nn.Module):
     ##################################
     ### Initialize System Dynamics ###
     ##################################
-    def InitSystemDynamics(self, f, h, m, n, infoString = 'fullInfo'):
+    def InitSystemDynamics(self, f, h, m, n, infoString, H_FC):
         
         if(infoString == 'partialInfo'):
             self.fString ='ModInacc'
@@ -110,12 +112,15 @@ class KalmanNetNN(torch.nn.Module):
             self.fString ='ModAcc'
             self.hString ='ObsAcc'
         
+        self.d = decoaded_dimention
+        
         # Set State Evolution Function
         self.f = f
         self.m = m
 
         # Set Observation Function
         self.h = h
+        self.H_FC = H_FC
         self.n = n
 
     ###########################

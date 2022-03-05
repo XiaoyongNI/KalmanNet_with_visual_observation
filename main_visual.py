@@ -4,13 +4,17 @@ from datetime import datetime # getting current time
 
 from EKF_test_visual import EKFTest
 from Linear_sysmdl_visual import SystemModel
-from Extended_sysmdl_viaual import SystemModel as NL_SystemModel
+from Extended_sysmdl_visual import SystemModel as NL_SystemModel
+from KalmanNet_sysmdl import SystemModel as NewArch_SystemModel
 from Extended_data_visual import DataGen,DataLoader,DataLoader_GPU, getObs
 from Extended_data_visual import N_E, N_CV, N_T, F, F_rotated, T, T_test, m1_0, m2_0, m, n,H_fully_connected, H_matrix_for_visual, b_for_visual
 from visual_supplementary import y_size, check_changs
 from Pipeline_KF_visual import Pipeline_KF
-from KalmanNet_nn_visual import KalmanNetNN
-from Extended_KalmanNet_nn import KalmanNetNN as Extended_KalmanNetNN
+
+from KalmanNet_nn_LinearCase_OldArch_visual import KalmanNetNN
+from KalmanNet_nn_OldArch_visual import KalmanNetNN as Extended_KalmanNetNN
+from KalmanNet_nn_NewArch_visual import KalmanNetNN as KalmanNetNN_NewArch
+
 from main_AE import Autoencoder, Encoder
 
 from filing_paths import path_model
@@ -47,6 +51,7 @@ fix_H_flag=True
 pendulum_data_flag=True # true for pendulum data, false for linear synthetic data
 encoded_dimention = 1 # the output dim of encoder
 matrix_data_flag = False # true for data in matrix form, false for data in image form
+old_arch_flag = False # true for old architecture of KNet, false for new. (architecture ref: KNet_TSP)
 ################################################
 
 ####################
@@ -56,7 +61,7 @@ r2 = torch.tensor([1e-4])
 # vdB = -20 # ratio v=q2/r2
 # v = 10**(vdB/10)
 # q2 = torch.mul(v,r2)
-q2 = torch.tensor([1e-5]) # Tuned
+q2 = torch.tensor([1e-6]) # can be tuned
 print("1/r2 [dB]: ", 10 * torch.log10(1/r2[0]))
 print("1/q2 [dB]: ", 10 * torch.log10(1/q2[0]))
 # True model
@@ -66,6 +71,11 @@ q = torch.sqrt(q2)
 if pendulum_data_flag:
    sys_model = NL_SystemModel(f, q, h, r, NL_T, NL_T_test, NL_m, NL_n, None)
    sys_model.InitSequence(NL_m1_0, NL_m2_0)
+   if not old_arch_flag:
+      Q_mod = q * q * torch.eye(NL_m)
+      R_mod = r * r * torch.eye(NL_n)
+      sys_model_KNet = NewArch_SystemModel(f, Q_mod, h, R_mod, T, T_test)
+      sys_model_KNet.InitSequence(NL_m1_0, NL_m2_0)     
 else:
    sys_model = SystemModel(F, q, H_matrix_for_visual, r, T, T_test)
    sys_model.InitSequence(m1_0, m2_0)
@@ -98,6 +108,10 @@ else:
 print("Data Load")
 [train_input, train_target, cv_input, cv_target, test_input, test_target] = DataLoader_GPU(dataFolderName + dataFileName)
 
+######  Optional: Cut CV set size to enhance training speed ######
+cv_input = cv_input[0:N_CV,...]
+cv_target = cv_target[0:N_CV,...]
+##################################################################
 if matrix_data_flag:
    # Observations: y = h(x) + R
    train_input = getObs(train_target,h,N_E,NL_n,NL_T)  
@@ -144,8 +158,13 @@ KNet_Pipeline = Pipeline_KF(strTime, "KNet", "KalmanNet", data_name)
 KNet_Pipeline.setssModel(sys_model)
 
 if pendulum_data_flag:
-   KNet_model = Extended_KalmanNetNN()
-   KNet_model.Build(sys_model)
+   if old_arch_flag:
+      KNet_model = Extended_KalmanNetNN()
+      KNet_model.Build(sys_model)
+   else:
+      KNet_model = KalmanNetNN()
+      KNet_model = KalmanNetNN_NewArch()
+      KNet_model.Build(sys_model_KNet)
 else:
    KNet_model = KalmanNetNN()
    KNet_model.Build(sys_model,h_fully_connected)
