@@ -126,7 +126,7 @@ if matrix_data_flag:
    cv_input = getObs(cv_target,h,N_CV,NL_n,NL_T)  
    cv_input = cv_input + torch.randn_like(cv_input) * r
 
-   test_input = getObs(test_target,h,N_T,NL_n,NL_T_test)  
+   test_input = getObs(test_target,h,N_T,NL_n,NL_T_test)
    test_input = test_input + torch.randn_like(test_input) * r
 
 # Print out dataset

@@ -198,7 +198,7 @@ def getObs(sequences, h, N_samples, n, T):
     for sequence in sequences:
         for t in range(sequence.size()[1]):
             sequences_out[i,:,t] = h(sequence[:,t])
-    i = i+1
+        i = i+1
 
     return sequences_out
 
