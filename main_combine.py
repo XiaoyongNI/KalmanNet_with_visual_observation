@@ -43,8 +43,8 @@ print("Current Time =", strTime)
 
 
 ############ Hyper Parameters ##################
-learning_rate_list=[1e-5]
-weight_decay_list=[1e-5]
+learning_rate_list=[1e-3]
+weight_decay_list=[1e-4]
 fix_H_flag=True
 encoded_dimention = 1 # the output dim of encoder
 ################################################

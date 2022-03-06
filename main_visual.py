@@ -45,8 +45,8 @@ print("Current Time =", strTime)
 
 
 ############ Hyper Parameters ##################
-learning_rate_list=[1e-4]
-weight_decay_list=[1e-5]
+learning_rate_list=[1e-3]
+weight_decay_list=[1e-4]
 fix_H_flag=True
 pendulum_data_flag=True # true for pendulum data, false for linear synthetic data
 encoded_dimention = 1 # the output dim of encoder
