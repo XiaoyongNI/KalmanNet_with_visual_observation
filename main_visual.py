@@ -74,7 +74,7 @@ if pendulum_data_flag:
    if not old_arch_flag:
       Q_mod = q * q * torch.eye(NL_m)
       R_mod = r * r * torch.eye(NL_n)
-      sys_model_KNet = NewArch_SystemModel(f, Q_mod, h, R_mod, T, T_test)
+      sys_model_KNet = NewArch_SystemModel(f, Q_mod, h, R_mod, NL_T, NL_T_test)
       sys_model_KNet.InitSequence(NL_m1_0, NL_m2_0)     
 else:
    sys_model = SystemModel(F, q, H_matrix_for_visual, r, T, T_test)
@@ -168,7 +168,6 @@ if pendulum_data_flag:
       KNet_model = Extended_KalmanNetNN()
       KNet_model.Build(sys_model)
    else:
-      KNet_model = KalmanNetNN()
       KNet_model = KalmanNetNN_NewArch()
       KNet_model.Build(sys_model_KNet)
 else:

@@ -64,7 +64,7 @@ class Visual_KNetNN(torch.nn.Module):
 
         ### Flatten layer
         self.flatten = nn.Flatten(start_dim=1)
-        
+
         ### Linear section
         self.encoder_lin = nn.Sequential(
             nn.Linear(128, 32),
@@ -215,7 +215,6 @@ class Visual_KNetNN(torch.nn.Module):
     ### Kalman Gain Estimation ###
     ##############################
     def step_KGain_est(self, y):
-
         obs_diff = y - torch.squeeze(self.y_previous)
         obs_innov_diff = y - torch.squeeze(self.m1y)
         fw_evol_diff = torch.squeeze(self.m1x_posterior) - torch.squeeze(self.m1x_posterior_previous)
@@ -237,6 +236,17 @@ class Visual_KNetNN(torch.nn.Module):
     ### Kalman Net Step ###
     #######################
     def KNet_step(self, y, fix_H_flag):
+        # Compute CNN encoder output
+        y = self.encoder_cnn(y)
+        y = self.flatten(y)
+        y = self.encoder_lin(y)
+
+        # Squeeze y and feed to KNet computation
+        if len(list(y.size())) >= 2:
+            if  len(list(torch.squeeze(y).size()))==0 and self.n==1:
+                y = torch.squeeze(y, dim = 1)
+            else:
+                y = torch.squeeze(y)
 
         # Compute Priors
         self.step_prior(fix_H_flag)
@@ -347,11 +357,6 @@ class Visual_KNetNN(torch.nn.Module):
     ###############
     def forward(self, y, fix_H_flag):
         y = y.to(dev, non_blocking=True)
-        if len(list(y.size())) >= 2:
-            if  len(list(torch.squeeze(y).size()))==0 and self.n==1:
-                y = torch.squeeze(y, dim = 1)
-            else:
-                y = torch.squeeze(y)
         '''
         for t in range(0, self.T):
             self.x_out[:, t] = self.KNet_step(y[:, t])

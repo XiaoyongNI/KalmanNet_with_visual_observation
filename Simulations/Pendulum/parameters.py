@@ -13,7 +13,7 @@ else:
 ### Design Parameters ###
 #########################
 NL_m = 2
-NL_n = 2
+NL_n = 1
 
 NL_m1_0 = torch.FloatTensor([np.pi,0]) #uniform(0, 2 * np.pi)
 m1x_0_design_test = torch.ones(NL_m, 1)

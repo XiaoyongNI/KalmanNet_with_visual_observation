@@ -1,4 +1,5 @@
 import torch
+torch.pi = torch.acos(torch.zeros(1)).item() * 2 # which is 3.1415927410125732
 import math
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
