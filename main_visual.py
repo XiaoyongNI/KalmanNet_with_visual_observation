@@ -50,7 +50,7 @@ weight_decay_list=[1e-5]
 fix_H_flag=True
 pendulum_data_flag=True # true for pendulum data, false for linear synthetic data
 encoded_dimention = 1 # the output dim of encoder
-matrix_data_flag = False # true for data in matrix form, false for data in image form
+matrix_data_flag = True # true for data in matrix form, false for data in image form
 old_arch_flag = False # true for old architecture of KNet, false for new. (architecture ref: KNet_TSP)
 ################################################
 
@@ -82,10 +82,16 @@ else:
 
 ##### Load  Encoder Models ##################
 h_fully_connected = H_fully_connected(H_matrix_for_visual, b_for_visual)
-model_AE_trained = Autoencoder()
-model_AE_trained.load_state_dict(torch.load('saved_models/AE_model_syntetic.pt'))
-model_AE_conv_trained = Encoder(encoded_dimention)
-model_AE_conv_trained.load_state_dict(torch.load('saved_models/Only_conv_encoder.pt'))
+
+if matrix_data_flag:
+   model_AE_trained = None      
+   model_AE_conv_trained = None
+else:
+   model_AE_trained = Autoencoder()
+   model_AE_trained.load_state_dict(torch.load('saved_models/AE_model_syntetic.pt'))
+   model_AE_conv_trained = Encoder(encoded_dimention)
+   model_AE_conv_trained.load_state_dict(torch.load('saved_models/Only_conv_encoder.pt'))
+      
 #################################
 
 # Mismatched model
@@ -134,9 +140,9 @@ print("testset size: x {} y {}".format(test_target.size(), test_input.size()))
 ##############################
 ### Evaluate Kalman Filter ###
 ##############################
-# if pendulum_data_flag:
-#    print("Evaluate Kalman Filter True")
-#    [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained, matrix_data_flag)
+if pendulum_data_flag:
+   print("Evaluate Kalman Filter True")
+   [MSE_EKF_linear_arr, MSE_EKF_linear_avg, MSE_EKF_dB_avg, KG_array, EKF_out] = EKFTest(sys_model, test_input, test_target, model_AE_conv_trained, matrix_data_flag)
    #print("Evaluate Kalman Filter Partial")
    #[MSE_KF_linear_arr_partialh, MSE_KF_linear_avg_partialh, MSE_KF_dB_avg_partialh] = KFTest(sys_model_partialh, test_input, test_target)
 

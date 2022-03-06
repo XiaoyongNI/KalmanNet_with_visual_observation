@@ -13,7 +13,7 @@ else:
 ### Design Parameters ###
 #########################
 NL_m = 2
-NL_n = 1
+NL_n = 2
 
 NL_m1_0 = torch.FloatTensor([np.pi,0]) #uniform(0, 2 * np.pi)
 m1x_0_design_test = torch.ones(NL_m, 1)
@@ -37,7 +37,10 @@ NL_T_test = 40
 T_gen = math.ceil(NL_T_test / ratio)
 # T_test_gen = math.ceil(T_test / ratio)
 
-H_design = torch.tensor([1.0, 0.0])
+if NL_n == 1:
+    H_design = torch.tensor([1.0, 0.0]) # Observe pos only
+else:
+    H_design = torch.eye(NL_n) 
 
 # H_design_inv = torch.inverse(H_design)
 
